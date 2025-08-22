@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WB Smart Waste Dashboard</title>
+    <title>Smart Waste Management Dashboard</title>
     
     <!-- Google Fonts: Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,276 +16,15 @@
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary-color: #2c5282;
-            --secondary-color: #2a69ac;
-            --background-color: #f7fafc;
-            --sidebar-bg: #ffffff;
-            --text-color: #4a5568;
-            --heading-color: #2d3748;
-            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --border-radius: 0.5rem;
-            --sidebar-width: 350px;
-            --transition-speed: 0.3s;
-        }
-
-        html, body {
-            height: 100%;
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--background-color);
-        }
-
-        .container {
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* --- Sidebar --- */
-        .sidebar {
-            width: var(--sidebar-width);
-            background-color: var(--sidebar-bg);
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            z-index: 1000;
-            transition: transform var(--transition-speed) ease;
-            position: relative;
-        }
-
-        .sidebar.collapsed {
-            transform: translateX(-100%);
-        }
-        
-        .sidebar-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-        
-        .sidebar-header i {
-            font-size: 2rem;
-            color: var(--primary-color);
-            margin-right: 1rem;
-        }
-        
-        .sidebar-header h1 {
-            font-size: 1.25rem;
-            color: var(--heading-color);
-            margin: 0;
-            line-height: 1.2;
-        }
-
-        /* --- Stats Cards --- */
-        .stats-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        
-        .stat-card {
-            background-color: #edf2f7;
-            padding: 1rem;
-            border-radius: var(--border-radius);
-            text-align: center;
-        }
-        
-        .stat-card .value {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            display: block;
-        }
-        
-        .stat-card .label {
-            font-size: 0.8rem;
-            color: var(--text-color);
-            text-transform: uppercase;
-            margin-top: 0.5rem;
-        }
-
-        .stat-card.full-width {
-            grid-column: 1 / -1;
-        }
-
-        /* --- Controls --- */
-        .controls h2 {
-            font-size: 1rem;
-            text-transform: uppercase;
-            color: var(--text-color);
-            margin-bottom: 1rem;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 0.5rem;
-        }
-        
-        .control-btn {
-            display: flex;
-            align-items: center;
-            width: 100%;
-            padding: 0.75rem 1rem;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            margin-bottom: 0.75rem;
-            border: none;
-            border-radius: var(--border-radius);
-            background-color: #e2e8f0;
-            color: var(--heading-color);
-            transition: all 0.2s ease;
-            text-align: left;
-        }
-        
-        .control-btn:hover {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .control-btn.active {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .control-btn i {
-            margin-right: 1rem;
-            width: 20px;
-            text-align: center;
-        }
-
-        /* --- Main Content --- */
-        .main-content {
-            flex: 1;
-            position: relative;
-            height: 100vh;
-        }
-
-        .map-container {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-
-        #map {
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-
-        /* --- Toggle Button --- */
-        .toggle-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 1001;
-            background-color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            padding: 12px;
-            cursor: pointer;
-            box-shadow: var(--card-shadow);
-            transition: all var(--transition-speed) ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 48px;
-            height: 48px;
-        }
-
-        .toggle-btn i {
-            font-size: 1.25rem;
-            color: var(--primary-color);
-            transition: transform var(--transition-speed) ease;
-        }
-
-        .toggle-btn.rotated i {
-            transform: rotate(180deg);
-        }
-
-        /* --- Loading Spinner --- */
-        .loader {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            z-index: 1002;
-            display: none;
-        }
-
-        @keyframes spin {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        /* --- Error/Success Messages --- */
-        .message {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 1rem 2rem;
-            border-radius: var(--border-radius);
-            z-index: 1003;
-            display: none;
-            max-width: 300px;
-            box-shadow: var(--card-shadow);
-            font-weight: 500;
-        }
-
-        .message.error {
-            background-color: #fed7d7;
-            color: #c53030;
-            border: 1px solid #feb2b2;
-        }
-
-        .message.success {
-            background-color: #c6f6d5;
-            color: #276749;
-            border: 1px solid #9ae6b4;
-        }
-
-        /* --- Debug Info --- */
-        .debug-info {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background-color: rgba(0,0,0,0.8);
-            color: white;
-            padding: 10px;
-            border-radius: var(--border-radius);
-            font-size: 0.8rem;
-            z-index: 1004;
-            display: none;
-        }
-
-        /* --- Mobile Responsiveness --- */
-        @media (max-width: 768px) {
-            .sidebar {
-                position: absolute;
-                height: 100vh;
-                z-index: 1100;
-            }
-        }
-    </style>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
     <div class="container">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <i class="fa-solid fa-recycle"></i>
-                <h1>WB Smart Waste<br>Dashboard</h1>
+                <h1>Smart Waste<br>Management</h1>
             </div>
 
             <div class="stats-container">
@@ -294,12 +33,30 @@
                     <div class="label">Total Bins</div>
                 </div>
                 <div class="stat-card">
-                    <span id="full-bins" class="value">-</span>
-                    <div class="label">Needs Collection</div>
+                    <span id="critical-bins" class="value">-</span>
+                    <div class="label">Critical</div>
+                </div>
+                <div class="stat-card">
+                    <span id="warning-bins" class="value">-</span>
+                    <div class="label">Warning</div>
+                </div>
+                <div class="stat-card">
+                    <span id="good-bins" class="value">-</span>
+                    <div class="label">Good</div>
                 </div>
                 <div class="stat-card full-width">
                     <span id="avg-fill" class="value">-</span>
                     <div class="label">Average Fill Level</div>
+                </div>
+            </div>
+
+            <div class="filters">
+                <h2>Status Filter</h2>
+                <div class="filter-chips">
+                    <div class="filter-chip active" data-filter="all">All</div>
+                    <div class="filter-chip" data-filter="critical">Critical</div>
+                    <div class="filter-chip" data-filter="warning">Warning</div>
+                    <div class="filter-chip" data-filter="good">Good</div>
                 </div>
             </div>
 
@@ -315,12 +72,46 @@
                     <i class="fa-solid fa-route"></i> Generate Route
                 </button>
             </div>
+
+            <div class="bin-management">
+                <h2>Add New Bin</h2>
+                <form id="addBinForm" class="add-bin-form">
+                    <div class="form-group">
+                        <label for="cityInput">City</label>
+                        <input type="text" id="cityInput" required placeholder="e.g., Kolkata">
+                    </div>
+                    <div class="form-group">
+                        <label for="latInput">Latitude</label>
+                        <input type="number" id="latInput" step="any" required placeholder="e.g., 22.5726">
+                    </div>
+                    <div class="form-group">
+                        <label for="lonInput">Longitude</label>
+                        <input type="number" id="lonInput" step="any" required placeholder="e.g., 88.3639">
+                    </div>
+                    <div class="form-group">
+                        <label for="fillLevelInput">Fill Level (%)</label>
+                        <input type="number" id="fillLevelInput" min="0" max="100" value="0" placeholder="0-100">
+                    </div>
+                    <button type="submit" class="btn-add">
+                        <i class="fa-solid fa-plus"></i> Add Bin
+                    </button>
+                </form>
+            </div>
         </aside>
 
         <main class="main-content">
             <button class="toggle-btn" id="toggleBtn">
                 <i class="fa-solid fa-angles-left"></i>
             </button>
+            
+            <div class="refresh-control">
+                <button id="autoRefreshBtn" class="refresh-btn" title="Toggle Auto-refresh">
+                    <i class="fa-solid fa-play"></i>
+                </button>
+                <button id="manualRefreshBtn" class="refresh-btn" title="Manual Refresh">
+                    <i class="fa-solid fa-sync-alt"></i>
+                </button>
+            </div>
             
             <div class="map-container">
                 <div id="map"></div>
@@ -336,371 +127,7 @@
     <!-- Leaflet.heat plugin -->
     <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
     
-    <script>
-        // Configuration
-        const API_URL = 'http://127.0.0.1:5000';
-        
-        // DOM Elements
-        const sidebar = document.getElementById('sidebar');
-        const toggleBtn = document.getElementById('toggleBtn');
-        const loader = document.getElementById('loader');
-        const message = document.getElementById('message');
-        const debugInfo = document.getElementById('debugInfo');
-        const showAllBinsBtn = document.getElementById('showAllBinsBtn');
-        const showHeatmapBtn = document.getElementById('showHeatmapBtn');
-        const showRouteBtn = document.getElementById('showRouteBtn');
-
-        // Map variables
-        let map = null;
-        let mapLayers = null;
-
-        // Debug mode - set to true to see debug info
-        const DEBUG_MODE = true;
-
-        // Utility Functions
-        function showLoader(show = true) {
-            loader.style.display = show ? 'block' : 'none';
-        }
-
-        function showMessage(text, type = 'error') {
-            message.textContent = text;
-            message.className = `message ${type}`;
-            message.style.display = 'block';
-            
-            setTimeout(() => {
-                message.style.display = 'none';
-            }, 5000);
-        }
-
-        function updateDebugInfo(text) {
-            if (DEBUG_MODE) {
-                debugInfo.textContent = text;
-                debugInfo.style.display = 'block';
-                console.log('DEBUG:', text);
-            }
-        }
-
-        function updateActiveButton(activeBtn) {
-            document.querySelectorAll('.control-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            activeBtn.classList.add('active');
-        }
-
-        function updateDashboardStats(bins) {
-            const totalBins = bins.length;
-            const fullBins = bins.filter(b => b.fill_level > 80).length;
-            const totalFill = bins.reduce((sum, b) => sum + b.fill_level, 0);
-            const avgFill = totalBins > 0 ? (totalFill / totalBins).toFixed(1) : 0;
-
-            document.getElementById('total-bins').textContent = totalBins;
-            document.getElementById('full-bins').textContent = fullBins;
-            document.getElementById('avg-fill').textContent = `${avgFill}%`;
-            
-            updateDebugInfo(`Stats updated: ${totalBins} bins, ${fullBins} full, ${avgFill}% avg`);
-        }
-
-        // Initialize Map
-        function initializeMap() {
-            try {
-                console.log('Initializing map...');
-                updateDebugInfo('Initializing map...');
-                
-                // Create map
-                map = L.map('map', {
-                    center: [24.0, 88.0],
-                    zoom: 7,
-                    zoomControl: true
-                });
-
-                // Add tile layer
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors',
-                    maxZoom: 18
-                }).addTo(map);
-
-                // Create layer group for markers/shapes
-                mapLayers = L.layerGroup().addTo(map);
-
-                console.log('Map initialized successfully');
-                updateDebugInfo('Map initialized successfully');
-                return true;
-            } catch (error) {
-                console.error('Error initializing map:', error);
-                updateDebugInfo(`Map init error: ${error.message}`);
-                showMessage('Failed to initialize map. Please refresh the page.');
-                return false;
-            }
-        }
-
-        // API Functions
-        async function showAllBins() {
-            if (!map) {
-                showMessage('Map not initialized');
-                return;
-            }
-
-            showLoader(true);
-            updateDebugInfo('Fetching bins data...');
-            
-            try {
-                console.log('Fetching bins...');
-                mapLayers.clearLayers();
-                
-                const response = await fetch(`${API_URL}/api/bins`);
-                console.log('Response status:', response.status);
-                
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                
-                const bins = await response.json();
-                console.log('Bins received:', bins.length, bins);
-                updateDebugInfo(`Received ${bins.length} bins`);
-                
-                // Validate bins data
-                if (!Array.isArray(bins) || bins.length === 0) {
-                    throw new Error('No valid bins data received');
-                }
-
-                updateDashboardStats(bins);
-
-                // Add bins to map
-                let binsAdded = 0;
-                bins.forEach((bin, index) => {
-                    // Validate bin data
-                    if (!bin.lat || !bin.lon || isNaN(bin.lat) || isNaN(bin.lon)) {
-                        console.warn('Invalid bin data:', bin);
-                        return;
-                    }
-
-                    let color = bin.fill_level > 80 ? '#d9534f' : 
-                               bin.fill_level > 50 ? '#f0ad4e' : '#5cb85c';
-                    
-                    try {
-                        const circle = L.circle([parseFloat(bin.lat), parseFloat(bin.lon)], {
-                            color: color,
-                            fillColor: color,
-                            fillOpacity: 0.7,
-                            radius: 1000, // Increased radius for better visibility
-                            weight: 3
-                        }).addTo(mapLayers);
-                        
-                        circle.bindPopup(`<b>Bin #${bin.id} (${bin.city})</b><br>Fill Level: <b>${bin.fill_level}%</b>`);
-                        binsAdded++;
-                    } catch (e) {
-                        console.error('Error adding bin to map:', e, bin);
-                    }
-                });
-
-                console.log(`Added ${binsAdded} bins to map`);
-                updateDebugInfo(`Added ${binsAdded}/${bins.length} bins to map`);
-
-                // Fit map to show all bins
-                if (binsAdded > 0) {
-                    const group = new L.featureGroup(mapLayers.getLayers());
-                    map.fitBounds(group.getBounds().pad(0.1));
-                    showMessage(`Successfully loaded ${binsAdded} waste bins`, 'success');
-                } else {
-                    throw new Error('No bins were added to the map');
-                }
-
-            } catch (error) {
-                console.error('Failed to fetch bins:', error);
-                updateDebugInfo(`Error: ${error.message}`);
-                showMessage(`Failed to load bins: ${error.message}`);
-            } finally {
-                showLoader(false);
-            }
-        }
-
-        async function showWasteHeatmap() {
-            if (!map) {
-                showMessage('Map not initialized');
-                return;
-            }
-
-            showLoader(true);
-            updateDebugInfo('Fetching heatmap data...');
-            
-            try {
-                console.log('Fetching heatmap data...');
-                mapLayers.clearLayers();
-                
-                const response = await fetch(`${API_URL}/api/heatmap`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                
-                const heatmapData = await response.json();
-                console.log('Heatmap data received:', heatmapData.length, heatmapData);
-                updateDebugInfo(`Received ${heatmapData.length} heatmap points`);
-
-                if (heatmapData && heatmapData.length > 0) {
-                    // Validate heatmap data
-                    const validData = heatmapData.filter(point => 
-                        Array.isArray(point) && 
-                        point.length >= 3 && 
-                        !isNaN(point[0]) && 
-                        !isNaN(point[1]) && 
-                        !isNaN(point[2])
-                    );
-
-                    if (validData.length === 0) {
-                        throw new Error('No valid heatmap data points');
-                    }
-
-                    console.log('Valid heatmap points:', validData.length);
-                    updateDebugInfo(`Using ${validData.length} valid heatmap points`);
-
-                    L.heatLayer(validData, {
-                        radius: 25,
-                        blur: 35,
-                        maxZoom: 12,
-                        gradient: {0.4: 'blue', 0.65: 'lime', 1: 'red'}
-                    }).addTo(mapLayers);
-
-                    showMessage(`Heatmap loaded with ${validData.length} data points`, 'success');
-                } else {
-                    throw new Error('No heatmap data available');
-                }
-
-            } catch (error) {
-                console.error('Failed to fetch heatmap:', error);
-                updateDebugInfo(`Heatmap error: ${error.message}`);
-                showMessage(`Failed to load heatmap: ${error.message}`);
-            } finally {
-                showLoader(false);
-            }
-        }
-
-        async function showOptimizedRoute() {
-            if (!map) {
-                showMessage('Map not initialized');
-                return;
-            }
-
-            showLoader(true);
-            updateDebugInfo('Fetching route data...');
-            
-            try {
-                console.log('Fetching route data...');
-                mapLayers.clearLayers();
-                
-                const response = await fetch(`${API_URL}/api/route`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                
-                const data = await response.json();
-                console.log('Route data received:', data);
-                updateDebugInfo(`Route: ${data.bins.length} bins to collect`);
-
-                if (data.bins.length === 0) {
-                    showMessage("No bins require collection at this time.", 'success');
-                    setTimeout(() => showAllBins(), 2000);
-                    return;
-                }
-
-                // Add numbered markers for route stops
-                let markersAdded = 0;
-                data.bins.forEach((bin, index) => {
-                    if (!bin.lat || !bin.lon || isNaN(bin.lat) || isNaN(bin.lon)) {
-                        console.warn('Invalid route bin data:', bin);
-                        return;
-                    }
-
-                    try {
-                        const marker = L.marker([parseFloat(bin.lat), parseFloat(bin.lon)]).addTo(mapLayers);
-                        marker.bindPopup(`<b>Stop ${index + 1}: Bin #${bin.id}</b><br>${bin.city}<br>Fill Level: <b>${bin.fill_level}%</b>`);
-                        markersAdded++;
-                    } catch (e) {
-                        console.error('Error adding route marker:', e, bin);
-                    }
-                });
-
-                // Add route line if available
-                if (data.route_geometry && data.route_geometry.length > 0) {
-                    try {
-                        const polyline = L.polyline(data.route_geometry, {
-                            color: '#2c5282',
-                            weight: 6,
-                            opacity: 0.9
-                        }).addTo(mapLayers);
-                        map.fitBounds(polyline.getBounds().pad(0.1));
-                    } catch (e) {
-                        console.error('Error adding route line:', e);
-                    }
-                }
-
-                showMessage(`Route generated with ${markersAdded} collection points`, 'success');
-                updateDebugInfo(`Route displayed: ${markersAdded} markers`);
-
-            } catch (error) {
-                console.error('Failed to fetch route:', error);
-                updateDebugInfo(`Route error: ${error.message}`);
-                showMessage(`Failed to generate route: ${error.message}`);
-            } finally {
-                showLoader(false);
-            }
-        }
-
-        // Event Listeners
-        function setupEventListeners() {
-            // Toggle button
-            toggleBtn.addEventListener('click', () => {
-                console.log('Toggle button clicked');
-                sidebar.classList.toggle('collapsed');
-                toggleBtn.classList.toggle('rotated');
-                
-                // Resize map after animation
-                setTimeout(() => {
-                    if (map) {
-                        map.invalidateSize();
-                    }
-                }, 300);
-            });
-
-            // Control buttons
-            showAllBinsBtn.addEventListener('click', () => {
-                updateActiveButton(showAllBinsBtn);
-                showAllBins();
-            });
-
-            showHeatmapBtn.addEventListener('click', () => {
-                updateActiveButton(showHeatmapBtn);
-                showWasteHeatmap();
-            });
-
-            showRouteBtn.addEventListener('click', () => {
-                updateActiveButton(showRouteBtn);
-                showOptimizedRoute();
-            });
-
-            // Window resize
-            window.addEventListener('resize', () => {
-                if (map) {
-                    setTimeout(() => map.invalidateSize(), 100);
-                }
-            });
-        }
-
-        // Initialize everything when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM loaded, initializing...');
-            updateDebugInfo('DOM loaded, starting initialization...');
-            
-            // Setup event listeners
-            setupEventListeners();
-            
-            // Initialize map
-            if (initializeMap()) {
-                // Load initial data after a short delay
-                setTimeout(() => {
-                    showAllBins();
-                }, 1000);
-            }
-        });
-
-        // Debug: Log any JavaScript errors
-        window.addEventListener('error', (e) => {
-            console.error('JavaScript error:', e.error);
-            updateDebugInfo(`JS Error: ${e.error.message}`);
-        });
-    </script>
+    <!-- Custom JavaScript -->
+    <script src="/static/js/app.js"></script>
 </body>
 </html>

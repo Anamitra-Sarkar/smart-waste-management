@@ -10,7 +10,6 @@ import sqlite3
 import os
 import logging
 from datetime import datetime, timedelta
-import json
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -30,7 +29,7 @@ def get_db_connection():
     return conn
 
 def init_database():
-    """Initialize database with tables and sample data"""
+    """Initialize database with tables and seed data (~60 bins) if empty"""
     conn = get_db_connection()
     
     # Create bins table
@@ -62,19 +61,59 @@ def init_database():
         )
     ''')
     
-    # Check if we have sample data
+    # Check if we have data
     bins_count = conn.execute('SELECT COUNT(*) FROM bins').fetchone()[0]
     
     if bins_count == 0:
-        # Insert sample data
-        sample_bins = [
-            ("Central Park Bin 1", 28.6139, 77.2090, 100, 85, "critical"),
-            ("Downtown Plaza Bin", 28.6129, 77.2100, 100, 65, "warning"), 
-            ("Mall Complex Bin 3", 28.6149, 77.2080, 100, 35, "good"),
-            ("Residential Area Bin", 28.6159, 77.2070, 100, 20, "good"),
-            ("Office District Bin", 28.6119, 77.2110, 100, 75, "warning")
+        logger.info("Seeding database with ~60 bins across India...")
+
+        # Cities used as seed locations (spread across India)
+        cities = [
+            ('Delhi', 28.6139, 77.2090), ('Mumbai', 19.0760, 72.8777),
+            ('Kolkata', 22.5726, 88.3639), ('Chennai', 13.0827, 80.2707),
+            ('Bengaluru', 12.9716, 77.5946), ('Hyderabad', 17.3850, 78.4867),
+            ('Pune', 18.5204, 73.8567), ('Ahmedabad', 23.0225, 72.5714),
+            ('Jaipur', 26.9124, 75.7873), ('Lucknow', 26.8467, 80.9462),
+            ('Kanpur', 26.4499, 80.3319), ('Nagpur', 21.1458, 79.0882),
+            ('Indore', 22.7196, 75.8577), ('Bhopal', 23.2599, 77.4126),
+            ('Visakhapatnam', 17.6868, 83.2185), ('Patna', 25.5941, 85.1376),
+            ('Vadodara', 22.3072, 73.1812), ('Ludhiana', 30.9000, 75.8573),
+            ('Agra', 27.1767, 78.0081), ('Guwahati', 26.1445, 91.7362),
+            ('Chandigarh', 30.7333, 76.7794), ('Coimbatore', 11.0168, 76.9558),
+            ('Madurai', 9.9252, 78.1198), ('Raipur', 21.2514, 81.6296),
+            ('Ranchi', 23.3441, 85.3096)
         ]
-        
+
+        # Configurable count via env; defaults to 60
+        try:
+            total = int(os.environ.get('SEED_COUNT', '60'))
+        except ValueError:
+            total = 60
+
+        import random
+        def status_from_level(level):
+            if level >= 80: return 'critical'
+            if level >= 50: return 'warning'
+            return 'good'
+
+        def jitter():
+            # ~±0.09° jitter (~10 km) to scatter bins around city centers
+            return (random.random() - 0.5) * 0.18
+
+        sample_bins = []
+        for i in range(total):
+            city_name, base_lat, base_lng = cities[i % len(cities)]
+            lat = round(base_lat + jitter(), 6)
+            lng = round(base_lng + jitter(), 6)
+            if i % 6 == 0:
+                level = 85 + int(random.random() * 10)       # critical
+            elif i % 3 == 0:
+                level = 55 + int(random.random() * 20)       # warning
+            else:
+                level = int(random.random() * 45)            # good
+            status = status_from_level(level)
+            sample_bins.append((f"{city_name} Bin {i // len(cities) + 1}", lat, lng, 100, level, status))
+
         conn.executemany('''
             INSERT INTO bins (name, lat, lng, capacity, currentLevel, status)
             VALUES (?, ?, ?, ?, ?, ?)

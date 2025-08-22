@@ -7,8 +7,12 @@ class SmartWasteManager {
         this.refreshInterval = null;
         this.currentFilter = 'all';
 
-        // Demo config
-        this.demoBinsCount = 60; // target number of demo bins across India
+        // Force demo mode so you see ~60 bins regardless of backend data.
+        // Set to false later if your API returns many bins.
+        this.useDemoBins = true;
+
+        // How many demo bins to generate across India
+        this.demoBinsCount = 60;
 
         this.init();
     }
@@ -103,7 +107,7 @@ class SmartWasteManager {
         });
     }
 
-    // Center map over India and prepare layers (updated)
+    // Center map over India and prepare layers
     async initializeMap() {
         try {
             // Check if Leaflet is available
@@ -216,12 +220,19 @@ class SmartWasteManager {
     }
 
     async loadBins() {
+        // Force demo bins to guarantee 50–60 markers across India
+        if (this.useDemoBins) {
+            this.bins = this.generateDemoData();
+            console.log(`Loaded ${this.bins.length} demo bins (forced)`);
+            return;
+        }
+
         try {
             const response = await fetch(`${this.API_BASE_URL}/bins`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             this.bins = await response.json();
-            console.log(`Loaded ${this.bins.length} bins`);
+            console.log(`Loaded ${this.bins.length} bins from API`);
         } catch (error) {
             console.error('Failed to load bins:', error);
             // Fallback to demo data with ~60 bins across India
@@ -244,7 +255,7 @@ class SmartWasteManager {
         }
     }
 
-    // Larger, realistic demo set spread across Indian cities (updated)
+    // Larger, realistic demo set spread across Indian cities
     generateDemoData() {
         const cities = [
             { name: 'Delhi', lat: 28.6139, lng: 77.2090 },
@@ -393,7 +404,7 @@ class SmartWasteManager {
         this.showMessage(`Displaying ${criticalBins.length} critical bins`, 'warning');
     }
 
-    // Use precise, small pixel markers instead of large 200m circles (updated)
+    // Use precise, small pixel markers instead of large 200m circles
     addBinToMap(bin) {
         // Skip map operations in demo mode
         if (typeof L === 'undefined' || !this.map.addLayer) {
@@ -512,9 +523,8 @@ class SmartWasteManager {
 
             if (!response.ok) throw new Error('Failed to schedule maintenance');
 
-            const result = await response.json();
+            await response.json();
             this.showMessage('Maintenance scheduled successfully!', 'success');
-            console.log('Maintenance scheduled:', result);
 
         } catch (error) {
             console.error('Failed to schedule maintenance:', error);

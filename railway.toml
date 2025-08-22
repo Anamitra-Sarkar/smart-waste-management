@@ -1,0 +1,17 @@
+[build]
+builder = "NIXPACKS"
+
+[build.nixpacksConfig]
+providers = ["python"]
+
+[deploy]
+startCommand = "gunicorn --bind 0.0.0.0:$PORT --workers 4 --timeout 120 app:app"
+
+[env]
+FLASK_ENV = "production"
+PORT = { default = "5000" }
+
+[healthcheck]
+path = "/api/health"
+timeout = 30
+interval = 60

@@ -272,6 +272,114 @@ def schedule_maintenance(bin_id):
         logger.error(f"Error in schedule_maintenance: {e}")
         return jsonify({"error": "Failed to schedule maintenance"}), 500
 
+@app.route('/api/maintenance', methods=['GET'])
+def get_maintenance_requests():
+    """Get all maintenance requests"""
+    try:
+        conn = get_db_connection()
+        requests_data = conn.execute('''
+            SELECT m.*, b.name as bin_name
+            FROM maintenance_requests m
+            JOIN bins b ON m.bin_id = b.id
+            ORDER BY 
+              CASE m.status 
+                WHEN 'pending' THEN 1 
+                WHEN 'in_progress' THEN 2 
+                WHEN 'completed' THEN 3 
+                WHEN 'canceled' THEN 4 
+                ELSE 5 END,
+              COALESCE(m.scheduled_date, m.created_at) ASC
+        ''').fetchall()
+        conn.close()
+        
+        requests_list = []
+        for req in requests_data:
+            requests_list.append({
+                'id': req['id'],
+                'bin_id': req['bin_id'],
+                'bin_name': req['bin_name'],
+                'type': req['type'],
+                'status': req['status'],
+                'scheduled_date': req['scheduled_date'],
+                'completed_date': req['completed_date'],
+                'notes': req['notes'],
+                'created_at': req['created_at']
+            })
+        
+        return jsonify(requests_list)
+        
+    except Exception as e:
+        logger.error(f"Error in get_maintenance_requests: {e}")
+        return jsonify({"error": "Failed to fetch maintenance requests"}), 500
+
+@app.route('/api/maintenance/<int:req_id>', methods=['PATCH'])
+def update_maintenance_status(req_id):
+    """Update status or notes for a maintenance request"""
+    try:
+        data = request.get_json()
+        new_status = data.get('status')  # pending | in_progress | completed | canceled
+        notes = data.get('notes')
+
+        if new_status and new_status not in ('pending', 'in_progress', 'completed', 'canceled'):
+            return jsonify({"error": "Invalid status"}), 400
+
+        conn = get_db_connection()
+        # Check existence
+        existing = conn.execute('SELECT id FROM maintenance_requests WHERE id = ?', (req_id,)).fetchone()
+        if not existing:
+            conn.close()
+            return jsonify({"error": "Maintenance request not found"}), 404
+
+        completed_date = None
+        if new_status == 'completed':
+            completed_date = datetime.now().isoformat()
+
+        # Build dynamic update
+        sets = []
+        params = []
+        if new_status:
+            sets.append("status = ?")
+            params.append(new_status)
+        if notes is not None:
+            sets.append("notes = ?")
+            params.append(notes)
+        if new_status == 'completed':
+            sets.append("completed_date = ?")
+            params.append(completed_date)
+
+        if not sets:
+            conn.close()
+            return jsonify({"message": "No changes supplied"})
+
+        params.append(req_id)
+        conn.execute(f"UPDATE maintenance_requests SET {', '.join(sets)} WHERE id = ?", params)
+        conn.commit()
+        conn.close()
+
+        return jsonify({"message": "Maintenance updated successfully", "completed_date": completed_date})
+    except Exception as e:
+        logger.error(f"Error in update_maintenance_status: {e}")
+        return jsonify({"error": "Failed to update maintenance"}), 500
+
+@app.route('/api/maintenance/<int:req_id>', methods=['DELETE'])
+def cancel_maintenance(req_id):
+    """Cancel a maintenance request (marks status=canceled)"""
+    try:
+        conn = get_db_connection()
+        existing = conn.execute('SELECT id FROM maintenance_requests WHERE id = ?', (req_id,)).fetchone()
+        if not existing:
+            conn.close()
+            return jsonify({"error": "Maintenance request not found"}), 404
+
+        conn.execute("UPDATE maintenance_requests SET status = 'canceled', completed_date = NULL WHERE id = ?", (req_id,))
+        conn.commit()
+        conn.close()
+
+        return jsonify({"message": "Maintenance canceled"})
+    except Exception as e:
+        logger.error(f"Error in cancel_maintenance: {e}")
+        return jsonify({"error": "Failed to cancel maintenance"}), 500
+
 @app.route('/api/statistics', methods=['GET'])
 def get_statistics():
     """Get dashboard statistics"""
@@ -309,39 +417,6 @@ def get_statistics():
     except Exception as e:
         logger.error(f"Error in get_statistics: {e}")
         return jsonify({"error": "Failed to fetch statistics"}), 500
-
-@app.route('/api/maintenance', methods=['GET'])
-def get_maintenance_requests():
-    """Get all maintenance requests"""
-    try:
-        conn = get_db_connection()
-        requests_data = conn.execute('''
-            SELECT m.*, b.name as bin_name
-            FROM maintenance_requests m
-            JOIN bins b ON m.bin_id = b.id
-            ORDER BY m.created_at DESC
-        ''').fetchall()
-        conn.close()
-        
-        requests_list = []
-        for req in requests_data:
-            requests_list.append({
-                'id': req['id'],
-                'bin_id': req['bin_id'],
-                'bin_name': req['bin_name'],
-                'type': req['type'],
-                'status': req['status'],
-                'scheduled_date': req['scheduled_date'],
-                'completed_date': req['completed_date'],
-                'notes': req['notes'],
-                'created_at': req['created_at']
-            })
-        
-        return jsonify(requests_list)
-        
-    except Exception as e:
-        logger.error(f"Error in get_maintenance_requests: {e}")
-        return jsonify({"error": "Failed to fetch maintenance requests"}), 500
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
